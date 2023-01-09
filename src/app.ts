@@ -3,19 +3,14 @@ import "module-alias/register";
 import express from "express";
 import { AdminRoute, VendorRoute } from "./routes";
 import connectDB from "@/config/connect-db";
+import { createServer } from "./server";
 
 dotenv.config();
 
 const config = process.env;
 
 const startServer = async () => {
-  const app = express();
-
-  app.use("/admin", AdminRoute);
-  app.use("/vendor", VendorRoute);
-
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
+  const app = createServer();
 
   await connectDB();
 
