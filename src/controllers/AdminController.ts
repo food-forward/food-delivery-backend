@@ -62,7 +62,18 @@ export const DeleteVendor = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {};
+) => {
+  const { error } = vendorByIdValidation(req.params);
+  if (error) return res.status(400).send(error.details[0]?.message);
+
+  const { id } = req.params;
+  const vendor = await Vendor.findById(id);
+  if (!vendor)
+    return res.status(404).send({ message: `Vendor with id ${id} not found` });
+
+  await Vendor.findByIdAndDelete(id);
+  return res.status(201).send({ message: "Vendor deleted successfully" });
+};
 
 export const UpdateVendor = async (
   req: Request,
