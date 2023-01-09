@@ -18,3 +18,12 @@ export const createVendorValidation = (data: CreateVendorInput) => {
 
   return schema.validate(data);
 };
+
+
+export const vendorByIdValidation = (data: unknown) => {
+  const schema = Joi.object({
+    id: Joi.string().required(),
+  });
+
+  return schema.validate(data);
+};

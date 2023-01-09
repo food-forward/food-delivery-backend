@@ -1,6 +1,9 @@
 import express, { Request, Response, NextFunction } from "express";
 import { CreateVendorInput } from "@/dto";
-import { createVendorValidation } from "@/validation/Vendor";
+import {
+  createVendorValidation,
+  vendorByIdValidation,
+} from "@/validation/Vendor";
 import { Vendor } from "@/models/Vendor";
 import { getEncryptedPassword, getSalt } from "@/utils/auth-utils";
 
@@ -29,7 +32,11 @@ export const CreateVendor = async (
   return res.json(vendor);
 };
 
-export const GetVendors = async (req: Request, res: Response, next: NextFunction) => {
+export const GetVendors = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const vendors = await Vendor.find();
 
   return res.json(vendors);
@@ -39,7 +46,17 @@ export const GetVendorById = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {};
+) => {
+  const { error } = vendorByIdValidation(req.params);
+  if (error) return res.status(400).send(error.details[0]?.message);
+
+  const { id } = req.params;
+  const vendor = await Vendor.findById(id);
+  if (!vendor)
+    return res.status(404).send({ message: `Vendor with id ${id} not found` });
+
+  return res.status(201).send(vendor);
+};
 
 export const DeleteVendor = async (
   req: Request,
