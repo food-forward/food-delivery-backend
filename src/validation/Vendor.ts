@@ -22,7 +22,7 @@ export const createVendorValidation = (data: CreateVendorInput) => {
 
 export const vendorByIdValidation = (data: unknown) => {
   const schema = Joi.object({
-    id: Joi.string().required(),
+    id: Joi.string().hex().length(24).required(),
   });
 
   return schema.validate(data);
