@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { CreateVendorInput } from "@/dto/Vendor.dto";
+import { CreateVendorInput, VendorLoginInput } from "@/dto/Vendor.dto";
 
 export const createVendorValidation = (data: CreateVendorInput) => {
   const schema = Joi.object({
@@ -25,5 +25,14 @@ export const vendorByIdValidation = (data: unknown) => {
     id: Joi.string().hex().length(24).required(),
   });
 
+  return schema.validate(data);
+};
+
+
+export const vendorLoginValidation = (data: VendorLoginInput) => {
+  const schema = Joi.object({
+    email: Joi.string().required(),
+    password: Joi.string().min(8).required(),
+  });
   return schema.validate(data);
 };
