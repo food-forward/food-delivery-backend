@@ -1,8 +1,10 @@
 import bcrypt from "bcrypt";
+import { config } from "@/config";
 import jwt from "jsonwebtoken";
 import _ from "lodash";
-// import { UserModelType } from "../src/types/user/user.model.type";
 import { Model } from "mongoose";
+import { AuthPayload } from "@/dto";
+
 export const getSalt = async () => {
   return await bcrypt.genSalt();
 };
@@ -10,7 +12,6 @@ export const getSalt = async () => {
 export const getEncryptedPassword = async (password: string, salt: string) => {
   return await bcrypt.hash(password, salt);
 };
-
 
 export const validatePassword = async (
   password: string,
@@ -91,4 +92,18 @@ export const refreshTokens = async (
     refreshToken: newRefreshToken,
     user: others._doc,
   };
+};
+
+export const validateJWTToken = async (token: string) => {
+  if (!token) return false;
+
+  try {
+    const payload = (await jwt.verify(
+      token,
+      <string>config.AUTH_TOKEN_SECRET
+    )) as AuthPayload;
+    return payload;
+  } catch (err) {
+    return false;
+  }
 };
