@@ -26,3 +26,8 @@ export interface EditVendorInput {
   phone: string;
   foodType: [string];
 }
+
+export interface VendorServiceInput {
+  lat: number;
+  lng: number;
+}

@@ -2,8 +2,9 @@ import { Request, Response } from "express";
 import {
   vendorLoginValidation,
   vendorProfileUpdateValidation,
+  vendorServiceUpdateValidation,
 } from "@/validation/Vendor";
-import { EditVendorInput, VendorLoginInput } from "@/dto";
+import { EditVendorInput, VendorLoginInput, VendorServiceInput } from "@/dto";
 import { Vendor } from "@/models/Vendor";
 import { createTokens, validatePassword } from "@/utils/auth-utils";
 import { config } from "@/config";
@@ -50,7 +51,6 @@ export const VendorLogin = async (req: Request, res: Response) => {
   }
 };
 
-
 export const GetVendorProfile = async (req: Request, res: Response) => {
   const user = req.user;
 
@@ -85,5 +85,30 @@ export const UpdateVendorProfile = async (req: Request, res: Response) => {
       .json({ message: "Vendor profile updated successfully" });
   } catch (error) {
     return res.status(400).json({ message: "Vendor profile not found" });
+  }
+};
+
+export const UpdateVendorService = async (req: Request, res: Response) => {
+  const user = req.user;
+
+  if (!user) {
+    return res
+      .status(400)
+      .json({ message: "Unable to Update vendor profile " });
+  }
+
+  const payload = <VendorServiceInput>req.body;
+
+  const { error } = vendorServiceUpdateValidation(payload);
+  if (error) return res.status(400).send(error.details[0]?.message);
+
+  try {
+    const existingVendor = await Vendor.findByIdAndUpdate(user._id, payload);
+    console.log(existingVendor);
+    return res
+      .status(201)
+      .json({ message: "Vendor service updated successfully" });
+  } catch (error) {
+    return res.status(400).json({ message: "Vendor service not found" });
   }
 };

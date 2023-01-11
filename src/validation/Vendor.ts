@@ -3,6 +3,7 @@ import {
   CreateVendorInput,
   VendorLoginInput,
   EditVendorInput,
+  VendorServiceInput,
 } from "@/dto/Vendor.dto";
 
 export const createVendorValidation = (data: CreateVendorInput) => {
@@ -45,6 +46,15 @@ export const vendorProfileUpdateValidation = (payload: EditVendorInput) => {
     address: Joi.string(),
     phone: Joi.string(),
     foodType: Joi.array().items(Joi.string()),
+  });
+
+  return schema.validate(payload);
+};
+
+export const vendorServiceUpdateValidation = (payload: VendorServiceInput) => {
+  const schema = Joi.object({
+    lat: Joi.number().required(),
+    lng: Joi.number().required,
   });
 
   return schema.validate(payload);
