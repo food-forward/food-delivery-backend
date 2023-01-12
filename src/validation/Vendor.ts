@@ -59,3 +59,18 @@ export const vendorServiceUpdateValidation = (payload: VendorServiceInput) => {
 
   return schema.validate(payload);
 };
+
+
+
+export const createFoodItemValidation = (payload: any) => {
+  const schema = Joi.object({
+    name: Joi.string(),
+    description: Joi.string(),
+    category: Joi.string(),
+    foodType: Joi.string(),
+    readyTime: Joi.number(),
+    price: Joi.number(),
+  });
+
+  return schema.validate(payload);
+};

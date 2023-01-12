@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import {
+  createFoodItemValidation,
   vendorLoginValidation,
   vendorProfileUpdateValidation,
   vendorServiceUpdateValidation,
@@ -8,6 +9,7 @@ import { EditVendorInput, VendorLoginInput, VendorServiceInput } from "@/dto";
 import { Vendor } from "@/models/Vendor";
 import { createTokens, validatePassword } from "@/utils/auth-utils";
 import { config } from "@/config";
+import { Food } from "@/models/Food";
 
 export const VendorLogin = async (req: Request, res: Response) => {
   const { error } = vendorLoginValidation(req.body);
@@ -112,3 +114,35 @@ export const UpdateVendorService = async (req: Request, res: Response) => {
     return res.status(400).json({ message: "Vendor service not found" });
   }
 };
+
+export const AddVendorFoods = async (req: Request, res: Response) => {
+  const { error } = createFoodItemValidation(req.body);
+  if (error) return res.status(400).send(error.details[0]?.message);
+
+  const user = req.user;
+  if (!user) return res.status(400).json({ message: "Authentication error" });
+
+  const vendor = await Vendor.findById(user._id);
+  if (!vendor)
+    return res
+      .status(400)
+      .json({ message: "You are not authenticated, login again" });
+
+  try {
+    const payload = req.body;
+    const foodItem = await Food.create({
+      vendorId: user._id,
+      rating: 0,
+      ...payload,
+    });
+    const updatedVendor = await vendor.foods.push(foodItem);
+
+    return res
+      .status(201)
+      .json({ message: "Food item added successfully", data: updatedVendor });
+  } catch (error) {
+    return res.status(400).json({ message: "Fail to add food item" });
+  }
+};
+
+export const GetVendorFoods = async (req: Request, res: Response) => {};

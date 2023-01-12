@@ -3,6 +3,8 @@ import {
   VendorLogin,
   UpdateVendorProfile,
   UpdateVendorService,
+  AddVendorFoods,
+  GetVendorFoods,
 } from "@/controllers";
 import { Authenticate } from "@/middlewares/Authentication";
 
@@ -13,6 +15,10 @@ router.get("/login", VendorLogin);
 router.get("/profile", Authenticate, VendorLogin);
 router.patch("/profile", Authenticate, UpdateVendorProfile);
 router.patch("/servive", Authenticate, UpdateVendorService);
+
+
+router.post("/foods", AddVendorFoods);
+router.get("/foods", GetVendorFoods);
 
 router.get("/", (req: Request, res: Response, next: NextFunction) => {
   res.json({ message: "Hello from Vendor" });
