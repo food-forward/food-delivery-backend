@@ -1,6 +1,41 @@
+import { CreateCustomerInput } from "@/dto/Customer.dto";
+import { Customer } from "@/models/Customer";
+import { generateOtp } from "@/utils";
+import { getEncryptedPassword, getSalt } from "@/utils/auth-utils";
+import { createCustomerInputValidator } from "@/validation/customer";
 import express, { Request, Response } from "express";
 
-export const CustomerSignUp = async (req: Request, res: Response) => {};
+export const CustomerSignUp = async (req: Request, res: Response) => {
+  const { error } = createCustomerInputValidator(req.body);
+  if (error) return res.status(400).send(error.details[0]?.message);
+
+  const body = <CreateCustomerInput>req.body;
+
+  const vendorExist = await Customer.findOne({ email: body.email });
+  if (vendorExist)
+    return res.status(400).send({
+      message: "Email already exist",
+    });
+
+  const salt = await getSalt();
+
+  const customerPassword = await getEncryptedPassword(body.password, salt);
+
+  const { otp, otp_expity } = generateOtp();
+
+  try {
+    const customer = await Customer.create({
+      ...body,
+      otp,
+      otp_expity,
+      password: customerPassword,
+    });
+
+    return res.status(201).json(customer);
+  } catch (error) {
+    return res.status(400).json(error);
+  }
+};
 export const CustomerLogin = async (req: Request, res: Response) => {};
 
 export const CustomerVerify = async (req: Request, res: Response) => {};

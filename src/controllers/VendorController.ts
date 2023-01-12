@@ -162,10 +162,10 @@ export const AddVendorFoods = async (req: Request, res: Response) => {
 
     const payload = req.body;
     const foodItem = await Food.create({
+      ...payload,
       vendorId: user._id,
       rating: 0,
       images,
-      ...payload,
     });
     vendor.foods.push(foodItem);
     const updatedVendor = await vendor.save();
