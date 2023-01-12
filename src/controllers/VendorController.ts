@@ -145,4 +145,14 @@ export const AddVendorFoods = async (req: Request, res: Response) => {
   }
 };
 
-export const GetVendorFoods = async (req: Request, res: Response) => {};
+export const GetVendorFoods = async (req: Request, res: Response) => {
+  const user = req.user;
+
+  if (!user) {
+    return res.status(400).json({ message: "vendor not found" });
+  }
+
+  const foods = await Vendor.find({ vendorId: user._id });
+
+  return res.status(200).json(foods);
+};
