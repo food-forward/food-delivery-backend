@@ -9,7 +9,8 @@
   - Vendor
   - Shopping
   - Customer
-  - Shopping
+  - Order
+  - Payment
   - Delivery
 
 ## Technology used
