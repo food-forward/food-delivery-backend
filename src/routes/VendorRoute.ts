@@ -7,8 +7,22 @@ import {
   GetVendorFoods,
 } from "@/controllers";
 import { Authenticate } from "@/middlewares/Authentication";
+import multer from "multer";
 
 const router = express.Router();
+
+const imageStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "images");
+  },
+  filename: function (req, file, cb) {
+    cb(null, new Date().toISOString() + "_" + file.originalname);
+  },
+});
+
+const images = multer({ storage: imageStorage }).array("images", 10);
+
+
 
 router.get("/login", VendorLogin);
 
@@ -17,7 +31,7 @@ router.patch("/profile", Authenticate, UpdateVendorProfile);
 router.patch("/servive", Authenticate, UpdateVendorService);
 
 
-router.post("/foods", AddVendorFoods);
+router.post("/foods", images, AddVendorFoods);
 router.get("/foods", GetVendorFoods);
 
 router.get("/", (req: Request, res: Response, next: NextFunction) => {

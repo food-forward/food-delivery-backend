@@ -129,10 +129,15 @@ export const AddVendorFoods = async (req: Request, res: Response) => {
       .json({ message: "You are not authenticated, login again" });
 
   try {
+    const files = req.files as [Express.Multer.File];
+
+    const images = files.map((file: Express.Multer.File) => file.filename);
+
     const payload = req.body;
     const foodItem = await Food.create({
       vendorId: user._id,
       rating: 0,
+      images,
       ...payload,
     });
     const updatedVendor = await vendor.foods.push(foodItem);
