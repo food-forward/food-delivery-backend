@@ -205,7 +205,23 @@ export const RequestOtp = async (req: Request, res: Response) => {
     .json({ message: "OTP sent to your registered Mobile Number!" });
 };
 
-export const GetCustomerProfile = async (req: Request, res: Response) => {};
+
+
+export const GetCustomerProfile = async (req: Request, res: Response) => {
+  const customer = req.user;
+  if (!customer)
+    return res
+      .status(400)
+      .json({ message: "Authentication error, try to login again" });
+
+  try {
+    const profile = await Customer.findById(customer._id);
+
+    return res.status(201).json(profile);
+  } catch (error) {
+    return res.status(400).json(error);
+  }
+};
 
 export const EditCustomerProfile = async (req: Request, res: Response) => {};
 
