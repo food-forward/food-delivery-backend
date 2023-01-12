@@ -3,11 +3,18 @@ import { config } from "@/config";
 import { CreateCustomerInput } from "@/dto/Customer.dto";
 import { Customer } from "@/models/Customer";
 import { generateOtp, onRequestOTP, createTokens } from "@/utils";
-import { getEncryptedPassword, getSalt } from "@/utils/auth-utils";
+import {
+  getEncryptedPassword,
+  getSalt,
+  validatePassword,
+} from "@/utils/auth-utils";
 import {
   createCustomerInputValidator,
+  customerLoginInputValidator,
   customerVerifyValidator,
 } from "@/validation/customer";
+
+
 
 export const CustomerSignUp = async (req: Request, res: Response) => {
   const { error } = createCustomerInputValidator(req.body);
@@ -44,7 +51,7 @@ export const CustomerSignUp = async (req: Request, res: Response) => {
         verified: customer.verified,
       },
       <string>config.AUTH_TOKEN_SECRET,
-      <string>config.REFRESH_TOKEN_SECRE
+      <string>config.REFRESH_TOKEN_SECRET
     );
 
     return res
@@ -69,7 +76,51 @@ export const CustomerSignUp = async (req: Request, res: Response) => {
     return res.status(400).json(error);
   }
 };
-export const CustomerLogin = async (req: Request, res: Response) => {};
+
+export const CustomerLogin = async (req: Request, res: Response) => {
+  const { error } = customerLoginInputValidator(req.body);
+  if (error) return res.status(400).send(error.details[0]?.message);
+
+  const { email, password } = req.body;
+  const customer = await Customer.findOne({ email: email });
+  if (!customer)
+    return res.status(400).json({ message: "Email or password is incorrect" });
+
+  const isValidPassword = await validatePassword(password, customer.password);
+  if (!isValidPassword)
+    return res.status(400).json({ message: "Email or password is incorrect" });
+
+  try {
+    const [authToken, refreshToken] = await createTokens(
+      {
+        _id: customer._id,
+        email: customer.email,
+        verified: customer.verified,
+      },
+      <string>config.AUTH_TOKEN_SECRET,
+      <string>config.REFRESH_TOKEN_SECRET
+    );
+
+    return res
+      .status(200)
+      .cookie("auth_token", authToken, {
+        sameSite: "none",
+        secure: true,
+        httpOnly: true,
+      })
+      .cookie("refresh_token", refreshToken, {
+        sameSite: "none",
+        secure: true,
+        httpOnly: true,
+      })
+      .json({
+        email: customer.email,
+        verified: customer.verified,
+      });
+  } catch (error) {
+    return res.status(400).send(error);
+  }
+};
 
 export const CustomerVerify = async (req: Request, res: Response) => {
   const { error } = customerVerifyValidator(req.body);
@@ -104,7 +155,7 @@ export const CustomerVerify = async (req: Request, res: Response) => {
       verified: updatedCustomerResponse.verified,
     },
     <string>config.AUTH_TOKEN_SECRET,
-    <string>config.REFRESH_TOKEN_SECRE
+    <string>config.REFRESH_TOKEN_SECRET
   );
 
   return res
@@ -126,6 +177,8 @@ export const CustomerVerify = async (req: Request, res: Response) => {
       status: "success",
     });
 };
+
+
 
 export const RequestOtp = async (req: Request, res: Response) => {
   const customer = req.user;

@@ -14,3 +14,11 @@ export const customerVerifyValidator = (payload: customerVerifyInput) => {
     otp: Joi.number(),
   }).validate(payload);
 };
+
+
+export const customerLoginInputValidator = (payload: CreateCustomerInput) => {
+  return Joi.object({
+    email: Joi.string().email().required(),
+    password: Joi.string().min(8).required(),
+  }).validate(payload);
+};
