@@ -1,9 +1,10 @@
+import { Request, Response } from "express";
+import { config } from "@/config";
 import { CreateCustomerInput } from "@/dto/Customer.dto";
 import { Customer } from "@/models/Customer";
-import { generateOtp } from "@/utils";
+import { generateOtp, onRequestOTP, createTokens } from "@/utils";
 import { getEncryptedPassword, getSalt } from "@/utils/auth-utils";
 import { createCustomerInputValidator } from "@/validation/customer";
-import express, { Request, Response } from "express";
 
 export const CustomerSignUp = async (req: Request, res: Response) => {
   const { error } = createCustomerInputValidator(req.body);
@@ -30,8 +31,37 @@ export const CustomerSignUp = async (req: Request, res: Response) => {
       otp_expity,
       password: customerPassword,
     });
+    await onRequestOTP(otp, body.phone);
 
-    return res.status(201).json(customer);
+    //Generate the Signature
+    const [authToken, refreshToken] = await createTokens(
+      {
+        _id: customer._id,
+        email: customer.email,
+        verified: customer.verified,
+      },
+      <string>config.AUTH_TOKEN_SECRET,
+      <string>config.REFRESH_TOKEN_SECRE
+    );
+
+    return res
+      .status(200)
+      .cookie("auth_token", authToken, {
+        sameSite: "none",
+        secure: true,
+        httpOnly: true,
+      })
+      .cookie("refresh_token", refreshToken, {
+        sameSite: "none",
+        secure: true,
+        httpOnly: true,
+      })
+      .json({
+        _id: customer._id,
+        email: customer.email,
+        verified: customer.verified,
+        status: "success",
+      });
   } catch (error) {
     return res.status(400).json(error);
   }
