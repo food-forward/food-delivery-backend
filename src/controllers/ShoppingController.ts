@@ -56,6 +56,12 @@ export const GetFoodsIn30Min = async (req: Request, res: Response) => {
 
 export const SearchFoods = async (req: Request, res: Response) => {};
 
-export const RestaurantById = async (req: Request, res: Response) => {};
+export const RestaurantById = async (req: Request, res: Response) => {
+  const id = req.params.id;
+
+  const result = await Vendor.findById(id).populate("foods");
+
+  return res.status(200).json(result);
+};
 
 export const GetAvailableOffers = async (req: Request, res: Response) => {};
