@@ -4,7 +4,10 @@ import { CreateCustomerInput } from "@/dto/Customer.dto";
 import { Customer } from "@/models/Customer";
 import { generateOtp, onRequestOTP, createTokens } from "@/utils";
 import { getEncryptedPassword, getSalt } from "@/utils/auth-utils";
-import { createCustomerInputValidator } from "@/validation/customer";
+import {
+  createCustomerInputValidator,
+  customerVerifyValidator,
+} from "@/validation/customer";
 
 export const CustomerSignUp = async (req: Request, res: Response) => {
   const { error } = createCustomerInputValidator(req.body);
@@ -68,7 +71,61 @@ export const CustomerSignUp = async (req: Request, res: Response) => {
 };
 export const CustomerLogin = async (req: Request, res: Response) => {};
 
-export const CustomerVerify = async (req: Request, res: Response) => {};
+export const CustomerVerify = async (req: Request, res: Response) => {
+  const { error } = customerVerifyValidator(req.body);
+  if (error) return res.status(400).send(error.details[0]?.message);
+
+  const { otp } = req.body;
+  const customer = req.user;
+
+  if (!customer)
+    return res
+      .status(400)
+      .json({ message: "Authentication error, try to login again" });
+
+  const profile = await Customer.findById(customer._id);
+  if (!profile)
+    return res.status(400).json({ message: "Unable to verify Customer" });
+
+  if (profile.otp_expiry < new Date())
+    return res.status(400).json({ message: "Token expired" });
+
+  if (profile.otp !== parseInt(otp))
+    return res.status(400).json({ message: "Invalid token" });
+
+  // Update verified field
+  profile.verified = true;
+  const updatedCustomerResponse = await profile.save();
+
+  const [authToken, refreshToken] = await createTokens(
+    {
+      _id: updatedCustomerResponse._id,
+      email: updatedCustomerResponse.email,
+      verified: updatedCustomerResponse.verified,
+    },
+    <string>config.AUTH_TOKEN_SECRET,
+    <string>config.REFRESH_TOKEN_SECRE
+  );
+
+  return res
+    .status(200)
+    .cookie("auth_token", authToken, {
+      sameSite: "none",
+      secure: true,
+      httpOnly: true,
+    })
+    .cookie("refresh_token", refreshToken, {
+      sameSite: "none",
+      secure: true,
+      httpOnly: true,
+    })
+    .json({
+      _id: updatedCustomerResponse._id,
+      email: updatedCustomerResponse.email,
+      verified: updatedCustomerResponse.verified,
+      status: "success",
+    });
+};
 
 export const RequestOtp = async (req: Request, res: Response) => {};
 
