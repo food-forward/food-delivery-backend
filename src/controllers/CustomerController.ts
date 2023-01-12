@@ -127,7 +127,30 @@ export const CustomerVerify = async (req: Request, res: Response) => {
     });
 };
 
-export const RequestOtp = async (req: Request, res: Response) => {};
+export const RequestOtp = async (req: Request, res: Response) => {
+  const customer = req.user;
+  if (!customer)
+    return res
+      .status(400)
+      .json({ message: "Authentication error, try to login again" });
+
+  const profile = await Customer.findById(customer._id);
+  if (!profile)
+    return res
+      .status(400)
+      .json({ message: "Authentication error, try to login again" });
+
+  const { otp, otp_expity } = generateOtp();
+  profile.otp = otp;
+  profile.otp_expiry = otp_expity;
+
+  await profile.save();
+  await onRequestOTP(otp, profile.phone);
+
+  return res
+    .status(200)
+    .json({ message: "OTP sent to your registered Mobile Number!" });
+};
 
 export const GetCustomerProfile = async (req: Request, res: Response) => {};
 
