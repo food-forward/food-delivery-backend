@@ -54,7 +54,19 @@ export const GetFoodsIn30Min = async (req: Request, res: Response) => {
   return res.status(200).json(foodResult);
 };
 
-export const SearchFoods = async (req: Request, res: Response) => {};
+export const SearchFoods = async (req: Request, res: Response) => {
+  const pincode = req.params.pincode;
+  const result = await Vendor.find({
+    pincode: pincode,
+    serviceAvailable: true,
+  }).populate("foods");
+
+  if (!result) return res.status(400).json({ message: "Fail to get foods" });
+
+  let foodResult: any = [];
+  result.map((item) => foodResult.push(...item.foods));
+  return res.status(200).json(foodResult);
+};
 
 export const RestaurantById = async (req: Request, res: Response) => {
   const id = req.params.id;
