@@ -2,8 +2,12 @@ import express, { Application } from "express";
 import path from "path";
 
 // routes
-import { AdminRoute, VendorRoute } from "./routes";
-import { ShoppingRoute } from "./routes";
+import {
+  AdminRoute,
+  VendorRoute,
+  ShoppingRoute,
+  CustomerRoute,
+} from "./routes";
 
 export const createServer = () => {
   const app: Application = express();
@@ -15,6 +19,8 @@ export const createServer = () => {
 
   app.use("/admin", AdminRoute);
   app.use("/vendor", VendorRoute);
+  app.use("/customer", CustomerRoute);
   app.use(ShoppingRoute);
+
   return app;
 };
