@@ -22,3 +22,12 @@ export const customerLoginInputValidator = (payload: CreateCustomerInput) => {
     password: Joi.string().min(8).required(),
   }).validate(payload);
 };
+
+
+export const editCustomerInputValidator = (payload: CreateCustomerInput) => {
+  return Joi.object({
+    firstName: Joi.string(),
+    lastName: Joi.string(),
+    address: Joi.string(),
+  }).validate(payload);
+};

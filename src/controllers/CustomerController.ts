@@ -12,9 +12,8 @@ import {
   createCustomerInputValidator,
   customerLoginInputValidator,
   customerVerifyValidator,
+  editCustomerInputValidator,
 } from "@/validation/customer";
-
-
 
 export const CustomerSignUp = async (req: Request, res: Response) => {
   const { error } = createCustomerInputValidator(req.body);
@@ -178,8 +177,6 @@ export const CustomerVerify = async (req: Request, res: Response) => {
     });
 };
 
-
-
 export const RequestOtp = async (req: Request, res: Response) => {
   const customer = req.user;
   if (!customer)
@@ -205,8 +202,6 @@ export const RequestOtp = async (req: Request, res: Response) => {
     .json({ message: "OTP sent to your registered Mobile Number!" });
 };
 
-
-
 export const GetCustomerProfile = async (req: Request, res: Response) => {
   const customer = req.user;
   if (!customer)
@@ -223,7 +218,35 @@ export const GetCustomerProfile = async (req: Request, res: Response) => {
   }
 };
 
-export const EditCustomerProfile = async (req: Request, res: Response) => {};
+export const EditCustomerProfile = async (req: Request, res: Response) => {
+  const { error } = editCustomerInputValidator(req.body);
+  if (error) return res.status(400).send(error.details[0]?.message);
+
+  const customer = req.user;
+  if (!customer)
+    return res
+      .status(400)
+      .json({ message: "Authentication error, try to login again" });
+
+  const { firstName, lastName, address } = req.body;
+
+  try {
+    const profile = await Customer.findById(customer._id);
+    if (!profile)
+      return res
+        .status(400)
+        .json({ message: "Authentication error, try to login again" });
+
+    profile.firstName = firstName;
+    profile.lastName = lastName;
+    profile.address = address;
+    const result = await profile.save();
+
+    return res.status(201).json(result);
+  } catch (error) {
+    return res.status(400).json(error);
+  }
+};
 
 /* ------------------- Delivery Notification --------------------- */
 
