@@ -5,6 +5,7 @@ import {
   EditVendorInput,
   VendorServiceInput,
 } from "@/dto/Vendor.dto";
+import { CreateFoodInput } from "@/dto/food-details.dto";
 
 export const createVendorValidation = (data: CreateVendorInput) => {
   const schema = Joi.object({
@@ -60,9 +61,7 @@ export const vendorServiceUpdateValidation = (payload: VendorServiceInput) => {
   return schema.validate(payload);
 };
 
-
-
-export const createFoodItemValidation = (payload: any) => {
+export const createFoodItemValidation = (payload: CreateFoodInput) => {
   const schema = Joi.object({
     name: Joi.string(),
     description: Joi.string(),

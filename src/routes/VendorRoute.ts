@@ -5,6 +5,7 @@ import {
   UpdateVendorService,
   AddVendorFoods,
   GetVendorFoods,
+  UpdateVendorCoverImage,
 } from "@/controllers";
 import { Authenticate } from "@/middlewares/Authentication";
 import multer from "multer";
@@ -22,17 +23,16 @@ const imageStorage = multer.diskStorage({
 
 const images = multer({ storage: imageStorage }).array("images", 10);
 
-
-
 router.get("/login", VendorLogin);
 
 router.get("/profile", Authenticate, VendorLogin);
 router.patch("/profile", Authenticate, UpdateVendorProfile);
 router.patch("/servive", Authenticate, UpdateVendorService);
+router.patch("/cover-photo", Authenticate, images, UpdateVendorCoverImage);
 
 
-router.post("/foods", images, AddVendorFoods);
-router.get("/foods", GetVendorFoods);
+router.post("/foods", Authenticate, images, AddVendorFoods);
+router.get("/foods", Authenticate, GetVendorFoods);
 
 router.get("/", (req: Request, res: Response, next: NextFunction) => {
   res.json({ message: "Hello from Vendor" });

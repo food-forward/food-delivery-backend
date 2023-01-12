@@ -65,6 +65,33 @@ export const GetVendorProfile = async (req: Request, res: Response) => {
   return res.status(200).json(existingVendor);
 };
 
+export const UpdateVendorCoverImage = async (req: Request, res: Response) => {
+  const user = req.user;
+  if (!user) return res.status(400).json({ message: "Authentication error" });
+
+  const vendor = await Vendor.findById(user._id);
+  if (!vendor)
+    return res
+      .status(400)
+      .json({ message: "You are not authenticated, login again" });
+
+  try {
+    const files = req.files as [Express.Multer.File];
+
+    const images = files.map((file: Express.Multer.File) => file.filename);
+
+    vendor.coverImages.push(...images);
+
+    const updatedVendor = await vendor.save();
+
+    return res
+      .status(201)
+      .json({ message: "Cover photo added successfully", data: updatedVendor });
+  } catch (error) {
+    return res.status(400).json({ message: "Fail to add cover photo" });
+  }
+};
+
 export const UpdateVendorProfile = async (req: Request, res: Response) => {
   const user = req.user;
 
@@ -140,7 +167,8 @@ export const AddVendorFoods = async (req: Request, res: Response) => {
       images,
       ...payload,
     });
-    const updatedVendor = await vendor.foods.push(foodItem);
+    vendor.foods.push(foodItem);
+    const updatedVendor = await vendor.save();
 
     return res
       .status(201)
