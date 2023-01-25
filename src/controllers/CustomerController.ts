@@ -345,7 +345,15 @@ export const GetOrders = async (req: Request, res: Response) => {
   return res.status(200).json(profile.orders);
 };
 
-export const GetOrderById = async (req: Request, res: Response) => {};
+export const GetOrderById = async (req: Request, res: Response) => {
+  const orderId = req.params.id;
+
+  const order = await Customer.findById(orderId).populate("items.food");
+
+  if (!order) return res.status(400).json({ msg: "Order not found" });
+
+  return res.status(200).json(order);
+};
 
 /* ------------------- Cart Section --------------------- */
 export const AddToCart = async (req: Request, res: Response) => {};
