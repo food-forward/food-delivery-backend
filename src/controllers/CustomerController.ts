@@ -328,7 +328,22 @@ export const CreateOrder = async (req: Request, res: Response) => {
   return res.status(200).json(currentOrder);
 };
 
-export const GetOrders = async (req: Request, res: Response) => {};
+export const GetOrders = async (req: Request, res: Response) => {
+  const customer = req.user;
+
+  if (!customer)
+    return res.status(403).json({
+      message: "Authentication error, please login and try again",
+    });
+
+  const profile = await Customer.findById(customer._id).populate("orders");
+  if (!profile)
+    return res.json(403).json({
+      message: "User not found",
+    });
+
+  return res.status(200).json(profile.orders);
+};
 
 export const GetOrderById = async (req: Request, res: Response) => {};
 
