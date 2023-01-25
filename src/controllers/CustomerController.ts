@@ -1,6 +1,10 @@
 import { Request, Response } from "express";
 import { config } from "@/config";
-import { CreateCustomerInput } from "@/dto/Customer.dto";
+import {
+  CartItems,
+  CreateCustomerInput,
+  OrderInputs,
+} from "@/dto/Customer.dto";
 import { Customer } from "@/models/Customer";
 import { generateOtp, onRequestOTP, createTokens } from "@/utils";
 import {
@@ -11,9 +15,12 @@ import {
 import {
   createCustomerInputValidator,
   customerLoginInputValidator,
+  customerOrderValidation,
   customerVerifyValidator,
   editCustomerInputValidator,
 } from "@/validation/customer";
+import { Food } from "@/models/Food";
+import { Order } from "@/models/Order";
 
 export const CustomerSignUp = async (req: Request, res: Response) => {
   const { error } = createCustomerInputValidator(req.body);
@@ -256,7 +263,70 @@ const assignOrderForDelivery = async (orderId: string, vendorId: string) => {};
 
 const validateTransaction = async (txnId: string) => {};
 
-export const CreateOrder = async (req: Request, res: Response) => {};
+export const CreateOrder = async (req: Request, res: Response) => {
+  const customer = req.user;
+
+  if (!customer)
+    return res.status(403).json({
+      message: "Authentication error, please login and try again",
+    });
+
+  const cart = <[CartItems]>req.body;
+
+  const { error } = customerOrderValidation(cart);
+  if (error) return res.json(403).send(error.details[0]?.message);
+
+  const orderId = `${Math.floor(Math.random() * 89999) + 1000}`;
+
+  const profile = await Customer.findById(customer._id);
+  if (!profile)
+    return res.json(403).json({
+      message: "User not found",
+    });
+
+  let cartItems = Array();
+
+  let netAmount = 0.0;
+
+  let vendorId;
+
+  const foods = await Food.find()
+    .where("_id")
+    .in(cart.map((item) => item._id))
+    .exec();
+
+  foods.map((food) => {
+    cart.map(({ _id, unit }) => {
+      if (food._id == _id) {
+        vendorId = food.vendorId;
+        netAmount += food.price * unit;
+        cartItems.push({ food, unit });
+      }
+    });
+  });
+
+  if (cartItems.length === 0)
+    return res.status(403).json({ message: "Food item not found" });
+
+  const currentOrder = await Order.create({
+    orderId: orderId,
+    vendorId: vendorId,
+    items: cartItems,
+    totalAmount: netAmount,
+    orderDate: new Date(),
+    orderStatus: "Waiting",
+    remarks: "",
+    deliveryId: "",
+    readyTime: 45,
+  });
+
+  profile.cart = [] as any;
+  profile.orders.push(currentOrder);
+
+  await profile.save();
+
+  return res.status(200).json(currentOrder);
+};
 
 export const GetOrders = async (req: Request, res: Response) => {};
 

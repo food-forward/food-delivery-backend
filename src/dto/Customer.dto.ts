@@ -1,5 +1,3 @@
-import { number } from "joi";
-
 export interface CreateCustomerInput {
   email: string;
   phone: string;
@@ -14,4 +12,15 @@ export interface CustomerPayload {
 
 export interface customerVerifyInput {
   otp: number;
+}
+
+export interface CartItems {
+  _id: string;
+  unit: number;
+}
+
+export interface OrderInputs {
+  txnId: string;
+  amount: string;
+  items: CartItems[];
 }
